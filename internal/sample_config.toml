@@ -1,0 +1,6 @@
+openai_api_key = "your_api_key_goes_here"
+
+# Used for OpenAI LLMs. You can say things like:
+# "Anwser every question like you are Elvis."
+# or "output your answer in valid JSON"
+openai_system_prompt = ''
