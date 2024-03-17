@@ -35,10 +35,10 @@ func (convo *Conversation) AddDialogue(element DialogueElement) {
 }
 
 type LLM struct {
-	Assistant     Assistant
-	OutputHandler ModelOutputHandler
-	SystemPrompt  string
-	Conversation  Conversation
+	Assistant      Assistant
+	OutputHandlers []ModelOutputHandler
+	SystemPrompt   string
+	Conversation   Conversation
 }
 
 // Adds a beginning prompt to the conversation before taking
@@ -81,7 +81,9 @@ func (llm *LLM) InputLoop() {
 				Content: response,
 			}
 			llm.Conversation.AddDialogue(output)
-			llm.OutputHandler.Output(output.Content)
+			for _, handler := range llm.OutputHandlers {
+				handler.Output(output.Content)
+			}
 		}
 	}
 }
