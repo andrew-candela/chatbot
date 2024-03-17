@@ -10,7 +10,7 @@ var speakOption bool
 
 func init() {
 	rootCMD.AddCommand(chatCommand)
-	chatCommand.Flags().BoolVarP(&speakOption, "speak-output", "s", false, "speaks the output of the LLM using GNU `say`")
+	chatCommand.Flags().BoolVarP(&speakOption, "speak-output", "s", false, "speaks the output of the LLM using GNU say")
 }
 
 var chatCommand = &cobra.Command{
