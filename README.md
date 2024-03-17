@@ -29,5 +29,5 @@ pop your OpenAI token in there,
 (and optionally any system instructions for the LLM)
 and you can start chatting by running: `chatbot chat`.
 Use the `-h` flag to see the general help page or help for a specific command.
-For some extra fun, use `chatbot -chat -s` (if you're on linux or a mac)
+For some extra fun, use `chatbot -chat -s` (if you're on a mac)
 to have the model speak to you.
