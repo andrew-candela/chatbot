@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/andrew-candela/chatbot/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -15,6 +16,7 @@ var rootCMD = &cobra.Command{
 }
 
 func Execute() {
+	defer internal.CatchPanicAndExit()
 	cobra.OnInitialize(initConfig)
 	rootCMD.Execute()
 }

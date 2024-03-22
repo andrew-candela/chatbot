@@ -93,7 +93,8 @@ func (ass *openAIAssistant) Prompt(convo *Conversation) string {
 
 func NewOpenAIAssistant(api_key string) Assistant {
 	if api_key == "" {
-		panic("No OpenAI API key provided")
+		panic(ManagedError{
+			Message: "No OpenAI API key provided."})
 	}
 	return &openAIAssistant{ModelName: GPT_3_5_turbo, APIKey: api_key}
 }
