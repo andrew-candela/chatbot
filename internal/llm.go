@@ -15,6 +15,8 @@ type ModelOutputHandler interface {
 // The interface for the LLM
 type Assistant interface {
 	Prompt(*Conversation) string
+	GetUserRole() string
+	GetAssistantRole() string
 }
 
 type DialogueElement struct {
@@ -23,7 +25,8 @@ type DialogueElement struct {
 }
 
 type Conversation struct {
-	History []DialogueElement
+	History         []DialogueElement
+	HasSystemPrompt bool
 }
 
 func (convo *Conversation) ChatHistory() []DialogueElement {
@@ -34,18 +37,25 @@ func (convo *Conversation) AddDialogue(element DialogueElement) {
 	convo.History = append(convo.History, element)
 }
 
+// Places a system prompt message in the beginning of the conversation.
+// If the conversation already has a system prompt, then it
+// will replace the first dialogue element with the new system prompt.
+func (convo *Conversation) AddSystemPrompt(element DialogueElement) {
+	// replace the first element of the conversation with
+	// the given system prompt
+	if convo.HasSystemPrompt {
+		convo.History[0] = element
+		return
+	}
+	// no system prompt exists, so put one into the beginning of the convo
+	convo.History = Prepend(convo.History, element)
+	convo.HasSystemPrompt = true
+}
+
 type LLM struct {
 	Assistant      Assistant
 	OutputHandlers []ModelOutputHandler
-	SystemPrompt   string
 	Conversation   Conversation
-}
-
-// Adds a beginning prompt to the conversation before taking
-// input from the user.
-func addSystemPrompt(prompt string, conversation *Conversation) {
-	new_element := DialogueElement{Role: "system", Content: prompt}
-	conversation.AddDialogue(new_element)
 }
 
 /*
@@ -59,10 +69,6 @@ func (llm *LLM) InputLoop() {
 	}
 	defer rl.Close()
 
-	if llm.SystemPrompt != "" {
-		addSystemPrompt(llm.SystemPrompt, &llm.Conversation)
-	}
-
 	for {
 		line, err := rl.Readline()
 		if err != nil { // io.EOF
@@ -71,13 +77,13 @@ func (llm *LLM) InputLoop() {
 		if line != "" {
 			fmt.Println()
 			input := DialogueElement{
-				Role:    "user",
+				Role:    llm.Assistant.GetUserRole(),
 				Content: line,
 			}
 			llm.Conversation.AddDialogue(input)
 			response := llm.Assistant.Prompt(&llm.Conversation)
 			output := DialogueElement{
-				Role:    "assistant",
+				Role:    llm.Assistant.GetAssistantRole(),
 				Content: response,
 			}
 			llm.Conversation.AddDialogue(output)

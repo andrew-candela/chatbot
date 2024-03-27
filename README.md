@@ -8,6 +8,8 @@ Type in a message and send it to a LLM to either print or speak the response.
 If you like running things from the terminal
 and paying for stuff that is otherwise free, then this repo is for you!
 
+Currently this supports using OpenAI and Anthropic LLMs.
+
 ## Installation
 
 Don't have Go installed on your machine, but still want to get in on the fun
@@ -20,7 +22,7 @@ to somewhere in your system's PATH.
 If you're on a mac, your OS will probably warn you not to
 trust me by running an executable you found on the internet.
 If you know what you're doing you can disable the warning and
-start pretending you are chatting with a friend.
+start pretending you have friends and are chatting with them.
 
 ## Running the command
 

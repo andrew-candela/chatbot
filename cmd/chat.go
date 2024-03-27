@@ -7,10 +7,12 @@ import (
 )
 
 var speakOption bool
+var useClaude bool
 
 func init() {
 	rootCMD.AddCommand(chatCommand)
 	chatCommand.Flags().BoolVarP(&speakOption, "speak-output", "s", false, "speaks the output of the LLM using GNU say")
+	chatCommand.Flags().BoolVarP(&useClaude, "use-claude", "c", false, "uses Anthropic models instead of OpenAI")
 }
 
 var chatCommand = &cobra.Command{
@@ -23,7 +25,20 @@ var chatCommand = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		internal.ParseConfigWithViper()
-		ass := internal.NewOpenAIAssistant(viper.GetString("openai_api_key"))
+		var ass internal.Assistant
+		system_prompt := viper.GetString("system_prompt")
+		if useClaude {
+			ass = internal.NewAnthropicAssistant(
+				viper.GetString("anthropic_api_key"),
+				internal.GetViperValueWithDefault("anthropic_model_name", string(internal.Haiku)),
+				system_prompt,
+			)
+		} else {
+			ass = internal.NewOpenAIAssistant(
+				viper.GetString("openai_api_key"),
+				system_prompt,
+			)
+		}
 		handlers := []internal.ModelOutputHandler{internal.NewStdOutHandler()}
 		if speakOption {
 			handlers = append(handlers, internal.NewSpeakHandler())
@@ -31,7 +46,6 @@ var chatCommand = &cobra.Command{
 		llm := internal.LLM{
 			Assistant:      ass,
 			OutputHandlers: handlers,
-			SystemPrompt:   viper.GetString("openai_system_prompt"),
 		}
 		llm.InputLoop()
 	},

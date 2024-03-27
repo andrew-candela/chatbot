@@ -50,3 +50,11 @@ func InitChatbot() {
 func CheckDebug() bool {
 	return viper.GetBool("verbose")
 }
+
+func GetViperValueWithDefault(config_value_name string, default_value string) string {
+	val := viper.GetString(config_value_name)
+	if val != "" {
+		return val
+	}
+	return default_value
+}
