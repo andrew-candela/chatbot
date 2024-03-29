@@ -21,8 +21,11 @@ const (
 const openAIURL string = "https://api.openai.com/v1/chat/completions"
 
 type openAIAssistant struct {
-	APIKey    string
-	ModelName openAIModel
+	APIKey        string
+	ModelName     openAIModel
+	SystemPrompt  string
+	UserRole      string
+	AssistantRole string
 }
 
 type apiRequestPayload struct {
@@ -80,21 +83,36 @@ func (ass *openAIAssistant) hitLargeLanguageModel(client *http.Client, dialogue 
 	defer resp.Body.Close()
 	PanicOnErr(err)
 	return unmarshalOpenAIResponse(resp)
+}
 
+// Constructs the system prompt the way OpenAI expects
+func (ass *openAIAssistant) createSystemPrompt() DialogueElement {
+	return DialogueElement{Role: "system", Content: ass.SystemPrompt}
 }
 
 // takes the dialoge provided and passes it to the OpenAI LLM.
 // Returns OpenAI's parsed response as a string.
 func (ass *openAIAssistant) Prompt(convo *Conversation) string {
+	if ass.SystemPrompt != "" {
+		system_message := ass.createSystemPrompt()
+		convo.AddSystemPrompt(system_message)
+	}
 	new_dialogue := ass.hitLargeLanguageModel(&openAIClient, convo.History)
-	convo.AddDialogue(new_dialogue)
-	return convo.ChatHistory()[len(convo.ChatHistory())-1].Content
+	return new_dialogue.Content
 }
 
-func NewOpenAIAssistant(api_key string) Assistant {
+func (ass *openAIAssistant) GetUserRole() string {
+	return ass.UserRole
+}
+
+func (ass *openAIAssistant) GetAssistantRole() string {
+	return ass.AssistantRole
+}
+
+func NewOpenAIAssistant(api_key string, system_prompt string) Assistant {
 	if api_key == "" {
 		panic(ManagedError{
 			Message: "No OpenAI API key provided."})
 	}
-	return &openAIAssistant{ModelName: GPT_3_5_turbo, APIKey: api_key}
+	return &openAIAssistant{ModelName: GPT_3_5_turbo, APIKey: api_key, SystemPrompt: system_prompt, UserRole: "user", AssistantRole: "assistant"}
 }

@@ -25,3 +25,8 @@ func CatchPanicAndExit() {
 		panic(r)
 	}
 }
+
+// Prepends the given elements to the beginning of a slice
+func Prepend[T any](slice []T, elements ...T) []T {
+	return append(elements, slice...)
+}
