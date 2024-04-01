@@ -8,7 +8,6 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -55,36 +54,8 @@ type anthropicAPIRequestPayload struct {
 	System    string            `json:"system"`
 }
 
-type anthropicError struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
-type anthropicErrorResponse struct {
-	Type  string         `json:"type"`
-	Error anthropicError `json:"error"`
-}
-
 func (ass *anthropicAssistant) unmarshalAnthropicAPIResponse(resp *http.Response) DialogueElement {
 	var payload anthropicResponsePayload
-	if resp.StatusCode/100 == 4 {
-		var errorPayload anthropicErrorResponse
-		err := json.NewDecoder(resp.Body).Decode(&errorPayload)
-		PanicOnErr(err)
-		panic(
-			ManagedError{
-				fmt.Sprintf(
-					"Error Code %v: %v\nReason :%v",
-					resp.StatusCode,
-					errorPayload.Error.Type,
-					errorPayload.Error.Message,
-				),
-			},
-		)
-	}
-	if resp.StatusCode >= 500 {
-		panic(ManagedError{fmt.Sprintf("Got error code %v from Anthropic API", resp.StatusCode)})
-	}
 	err := json.NewDecoder(resp.Body).Decode(&payload)
 	PanicOnErr(err)
 
@@ -109,6 +80,7 @@ func (ass *anthropicAssistant) hitLargeLanguageModel(client *http.Client, dialog
 	req.Header.Add("anthropic-version", "2023-06-01")
 	resp, err := client.Do(req)
 	PanicOnErr(err)
+	InspectAPIResponsePayload(resp)
 	defer resp.Body.Close()
 	return ass.unmarshalAnthropicAPIResponse(resp)
 
