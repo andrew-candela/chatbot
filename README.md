@@ -4,6 +4,7 @@
 ![Example Usage](usage_example.png)
 
 Type in a message and send it to a LLM to either print or speak the response.
+If you're really feeling lazy, you can have two LLMs speak to each other.
 
 If you like running things from the terminal
 and paying for stuff that is otherwise free, then this repo is for you!
