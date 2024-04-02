@@ -59,6 +59,32 @@ type LLM struct {
 }
 
 /*
+Pass a string to the LLM. It will:
+  - append it to the conversation
+  - pass the conversation to the assistant
+  - add the assistant response to the conversation
+
+returns the assistant's response as text
+*/
+func (llm *LLM) Converse(utterance string) string {
+	input := DialogueElement{
+		Role:    llm.Assistant.GetUserRole(),
+		Content: utterance,
+	}
+	llm.Conversation.AddDialogue(input)
+	response := llm.Assistant.Prompt(&llm.Conversation)
+	output := DialogueElement{
+		Role:    llm.Assistant.GetAssistantRole(),
+		Content: response,
+	}
+	llm.Conversation.AddDialogue(output)
+	for _, handler := range llm.OutputHandlers {
+		handler.Output(response)
+	}
+	return response
+}
+
+/*
 Collects input from the user and sends it to the LLM,
 then handles the output.
 */
@@ -76,20 +102,16 @@ func (llm *LLM) InputLoop() {
 		}
 		if line != "" {
 			fmt.Println()
-			input := DialogueElement{
-				Role:    llm.Assistant.GetUserRole(),
-				Content: line,
-			}
-			llm.Conversation.AddDialogue(input)
-			response := llm.Assistant.Prompt(&llm.Conversation)
-			output := DialogueElement{
-				Role:    llm.Assistant.GetAssistantRole(),
-				Content: response,
-			}
-			llm.Conversation.AddDialogue(output)
-			for _, handler := range llm.OutputHandlers {
-				handler.Output(output.Content)
-			}
+			llm.Converse(line)
 		}
 	}
+}
+
+// Witness the glory of AGI!
+func Singularity(leftLLM *LLM, rightLLM *LLM, spark string) {
+	left_handler := AGIHandler{rightLLM}
+	right_handler := AGIHandler{leftLLM}
+	leftLLM.OutputHandlers = append(leftLLM.OutputHandlers, &left_handler)
+	rightLLM.OutputHandlers = append(rightLLM.OutputHandlers, &right_handler)
+	leftLLM.Converse(spark)
 }
